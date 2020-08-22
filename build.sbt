@@ -9,6 +9,7 @@ ThisBuild / scalacOptions ++= Seq(
 )
 
 lazy val core = (project in file("core")).settings(
+//  addCompilerPlugin(Dependencies.Plugins.kindProjector.cross(CrossVersion.full)),
   libraryDependencies := Seq(
     Dependencies.catsCore,
     Dependencies.catsFree,
@@ -24,6 +25,7 @@ lazy val core = (project in file("core")).settings(
 lazy val circe = (project in file("circe"))
   .dependsOn(core)
   .settings(
+//    addCompilerPlugin(Dependencies.Plugins.kindProjector.cross(CrossVersion.full)),
     libraryDependencies := Seq(
       Dependencies.circeCore,
     ) ++ Seq(

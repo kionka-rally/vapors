@@ -6,6 +6,7 @@ object Dependencies {
 
   private final val catsVersion = "2.0.0"
   private final val circeVersion = "0.11.1"
+  private final val kindProjectorVersion = "0.11.0"
   private final val scalaCheckVersion = "1.14.1"
   private final val scalaTestVersion = "3.2.0"
   private final val scalaTestPlusScalaCheckVersion = "3.2.1.0"
@@ -19,4 +20,8 @@ object Dependencies {
   val scalaTest = "org.scalatest" %% "scalatest" % scalaTestVersion
   val scalaTestPlusScalaCheck = "org.scalatestplus" %% "scalacheck-1-14" % scalaTestPlusScalaCheckVersion
   def scalaReflect(scalacVersion: String): ModuleID = "org.scala-lang" % "scala-reflect" % scalacVersion
+
+  object Plugins {
+    val kindProjector = "org.typelevel" % "kind-projector" % kindProjectorVersion
+  }
 }

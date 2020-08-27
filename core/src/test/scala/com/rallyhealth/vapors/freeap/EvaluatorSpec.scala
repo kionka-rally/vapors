@@ -5,7 +5,7 @@ import org.scalatest.freespec.AnyFreeSpec
 
 class EvaluatorSpec extends AnyFreeSpec {
   import evaluator._
-  import dsl._
+  import algebra._
 
   private val it = "freeap.evaluate"
 
@@ -15,18 +15,28 @@ class EvaluatorSpec extends AnyFreeSpec {
     val probs = Fact("probs", Probs(Map("weightloss" -> .8)))
 
     val all = List(
-      Facts.name,
-      Facts.age,
-      Facts.probs
+      name,
+      age,
+      probs
     )
   }
 
-  s"$it should combine matching facts from and operator" in {
+  s"$it should combine matching facts using the && operator" in {
     val result = evaluate(
       Facts.all,
-      has(Facts.age) && has(Facts.probs)
+      ExpHas(Facts.age) && ExpHas(Facts.probs)
     )
     assertResult(List(Facts.age, Facts.probs)) {
+      result.matchingFacts
+    }
+  }
+
+  s"$it should filter to the first matching set of facts using the || operator" in {
+    val result = evaluate(
+      Facts.all,
+      ExpExists(_.value)
+    )
+    assertResult(List(Facts.probs)) {
       result.matchingFacts
     }
   }

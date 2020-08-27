@@ -5,7 +5,7 @@ import scala.language.implicitConversions
 /**
   * Magnet type for [[Fact]]s and lifted values.
   */
-sealed trait Data[+V]
+sealed trait Data[+V] extends Any
 
 object Data {
 
@@ -20,4 +20,4 @@ final case class Fact[+V](
   value: V
 ) extends Data[V]
 
-final case class Value[+A](value: A) extends Data[A]
+final case class Value[+A](value: A) extends AnyVal with Data[A]

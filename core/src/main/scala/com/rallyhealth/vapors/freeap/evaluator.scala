@@ -2,47 +2,61 @@ package com.rallyhealth.vapors.freeap
 
 import cats.arrow.FunctionK
 import cats.data.{NonEmptyList, State}
-import com.rallyhealth.vapors.{Fact, FactsMatch, NoFactsMatch, Result}
+import com.rallyhealth.vapors.{Fact, FactsMatch, NoFactsMatch, Result, Value}
 
 object evaluator {
 
   import algebra._
-  import dsl._
 
   def evaluate[X](
     allFacts: List[Fact[X]],
-    root: ExpDsl[X]
+    root: ExpAlg[X]
   ): Result[X] = {
-    type Evaluator[A] = State[Result[X], A]
 
-    def eval[Y](exp: ExpDsl[Y]): Evaluator[Y] = {
-      exp
-        .foldMap(new FunctionK[ExpAlg, Evaluator] {
-          override def apply[A](fa: ExpAlg[A]): Evaluator[A] = {
-            val a = for {
-              c <- State.get[Result[X]]
-              _ <- State.set(fa match {
-                case ExpHas(v) =>
-                  Result.fromList(c.matchingFacts.filter(_.value == v))
-                case ExpAnd(e) =>
-                  e.foldLeft(c) {
-                    case (f @ FactsMatch(matching), n) =>
-                      // TODO: Is this correct?
-                      eval(n).runS(f).value
-                  }
-              })
-              x <- State.get[Result[X]]
-            } yield x
-            a
+    def eval(
+      facts: NonEmptyList[Fact[X]],
+      exp: ExpAlg[X]
+    ): Result[X] = {
+      exp match {
+        case ExpHas(datum) => Result.fromList(facts.filter(_ == datum))
+        case ExpHasAny(data) =>
+          val dataSet = data.toSet
+          Result.fromList(facts.find(dataSet).toList)
+        case ExpExists(fn) =>
+          facts.filter(f => fn(f.value))
+        case ExpAnd(expressions) =>
+          var currentResult: Result[X] = FactsMatch(facts)
+          var accumulatedMatchingFacts: Set[Fact[X]] = Set()
+          val iter = expressions.iterator
+          while (iter.hasNext && currentResult.matchingFacts.nonEmpty) {
+            val nextExp = iter.next()
+            val filtered = eval(facts, nextExp)
+            accumulatedMatchingFacts ++= filtered.matchingFacts
+            currentResult = filtered
           }
-        })
+          if (currentResult.matchingFacts.isEmpty) {
+            NoFactsMatch
+          } else {
+            Result.fromList(accumulatedMatchingFacts.toList)
+          }
+        case ExpOr(expressions) =>
+          var currentResult: Result[X] = NoFactsMatch
+          val iter = expressions.iterator
+          while (iter.hasNext && currentResult.matchingFacts.isEmpty) {
+            val nextExp = iter.next()
+            val filtered = eval(facts, nextExp)
+            currentResult = filtered
+          }
+          currentResult
+      }
     }
 
-    NonEmptyList.fromList(allFacts).map { allFactsNel =>
-      eval(root)
-        .runS(FactsMatch(allFactsNel))
-        .value
-    }.getOrElse(NoFactsMatch)
+    NonEmptyList
+      .fromList(allFacts)
+      .map { allFactsNel =>
+        eval(allFactsNel, root)
+      }
+      .getOrElse(NoFactsMatch)
   }
 
 }

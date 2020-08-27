@@ -6,7 +6,7 @@ sealed trait Result[+I] {
 
   def matchingFacts: List[Fact[I]]
 
-  def filter(p: Fact[I] => Boolean): Result[I] = {
+  final def filter(p: Fact[I] => Boolean): Result[I] = {
     this match {
       case NoFactsMatch =>
         NoFactsMatch
@@ -40,9 +40,7 @@ object Result {
   }
 }
 
-final case class FactsMatch[+I](
-  matchingFactsNel: NonEmptyList[Fact[I]]
-) extends Result[I] {
+final case class FactsMatch[+I](matchingFactsNel: NonEmptyList[Fact[I]]) extends Result[I] {
   override def matchingFacts: List[Fact[I]] = matchingFactsNel.toList
 }
 

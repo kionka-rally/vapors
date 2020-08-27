@@ -1,32 +1,35 @@
 package com.rallyhealth.vapors.freeap
 
-import cats.arrow.FunctionK
-import cats.data.{NonEmptyList, State}
-import com.rallyhealth.vapors.{Fact, FactsMatch, NoFactsMatch, Result, Value}
+import cats.data.NonEmptyList
+import com.rallyhealth.vapors.{Fact, FactsMatch, NoFactsMatch, Result}
 
 object evaluator {
 
   import algebra._
 
   def evaluate[X](
-    allFacts: List[Fact[X]],
+    allFacts: List[Fact[X]]
+  )(
     root: ExpAlg[X]
   ): Result[X] = {
 
-    def eval(
-      facts: NonEmptyList[Fact[X]],
-      exp: ExpAlg[X]
-    ): Result[X] = {
+    def eval[Y](
+      facts: NonEmptyList[Fact[Y]],
+      exp: ExpAlg[Y]
+    ): Result[Y] = {
       exp match {
+        case x: ExpTyped[Y, _] =>
+          NonEmptyList.fromList(x.filter(facts)).map { subFacts =>
+            eval(subFacts, x.subExp)
+          }.getOrElse(NoFactsMatch)
         case ExpHas(datum) => Result.fromList(facts.filter(_ == datum))
-        case ExpHasAny(data) =>
-          val dataSet = data.toSet
-          Result.fromList(facts.find(dataSet).toList)
-        case ExpExists(fn) =>
-          facts.filter(f => fn(f.value))
+        case ExpHasAny(dataset) =>
+          Result.fromList(facts.find(dataset).toList)
+        case ExpFilter(fn) =>
+          Result.fromList(facts.filter(fn))
         case ExpAnd(expressions) =>
-          var currentResult: Result[X] = FactsMatch(facts)
-          var accumulatedMatchingFacts: Set[Fact[X]] = Set()
+          var currentResult: Result[Y] = FactsMatch(facts)
+          var accumulatedMatchingFacts: Set[Fact[Y]] = Set()
           val iter = expressions.iterator
           while (iter.hasNext && currentResult.matchingFacts.nonEmpty) {
             val nextExp = iter.next()
@@ -40,7 +43,7 @@ object evaluator {
             Result.fromList(accumulatedMatchingFacts.toList)
           }
         case ExpOr(expressions) =>
-          var currentResult: Result[X] = NoFactsMatch
+          var currentResult: Result[Y] = NoFactsMatch
           val iter = expressions.iterator
           while (iter.hasNext && currentResult.matchingFacts.isEmpty) {
             val nextExp = iter.next()

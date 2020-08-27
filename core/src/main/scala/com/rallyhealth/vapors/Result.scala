@@ -34,6 +34,8 @@ sealed trait Result[+I] {
 
 object Result {
 
+  def fromNel[I](nonEmptyFacts: NonEmptyList[Fact[I]]): FactsMatch[I] = FactsMatch(nonEmptyFacts)
+
   def fromList[I](facts: List[Fact[I]]): Result[I] = NonEmptyList.fromList(facts) match {
     case Some(nonEmptyList) => FactsMatch(nonEmptyList)
     case None => NoFactsMatch

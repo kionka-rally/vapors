@@ -11,6 +11,8 @@ object Data {
 
   /**
     * Automatically lift values into data.
+    *
+    * TODO: Is this needed?
     */
   implicit def pure[V](value: V): Value[V] = Value(value)
 }

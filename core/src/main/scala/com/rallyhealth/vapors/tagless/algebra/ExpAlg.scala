@@ -1,15 +1,14 @@
 package com.rallyhealth.vapors.tagless.algebra
 
 import cats.Applicative
-import cats.free.FreeApplicative
 import com.rallyhealth.vapors.{Data, Result}
 
 import scala.reflect.runtime.{universe => ru}
 
 trait ExpAlg[F[_]] extends Applicative[F] {
 
-  // TODO: How to do this?
-//  def and[I](expressions: Seq[FreeApplicative[ExpAlg, I]]): F[Result[I]]
+  // TODO: How do I implement this?
+//  def and[I](expressions: List[ExpDsl[I]]): F[Result[I]]
 
   def hasAnyOf[I](v: Set[Data[I]]): F[Result[I]]
 

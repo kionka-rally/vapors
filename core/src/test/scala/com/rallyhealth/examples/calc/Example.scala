@@ -17,4 +17,8 @@ object Example {
     println("PRINTED: " + printed)
     println("evaled: " + evaled)
   }
+
+  def main(args: Array[String]): Unit = {
+    calc()
+  }
 }

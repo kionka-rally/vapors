@@ -1,11 +1,11 @@
-package com.rallyhealth.vapors.freeap
+package com.rallyhealth.vapors.adt
 
 import com.rallyhealth.vapors.Fact
 import org.scalatest.freespec.AnyFreeSpec
 
 class EvaluatorSpec extends AnyFreeSpec {
-  import evaluator._
   import dsl._
+  import evaluator._
 
   private val it = "freeap.evaluate"
 
@@ -23,7 +23,10 @@ class EvaluatorSpec extends AnyFreeSpec {
 
   s"$it should combine matching facts using the && operator" in {
     val result = evaluate(Facts.all) {
-      and(has(Facts.age), has(Facts.probs))
+      and(
+        has(Facts.age),
+        has(Facts.probs)
+      )
     }
     assertResult(List(Facts.age, Facts.probs)) {
       result.matchingFacts
@@ -36,7 +39,7 @@ class EvaluatorSpec extends AnyFreeSpec {
         hasValue(32)
       }
     }
-    assertResult(List(Facts.probs)) {
+    assertResult(List(Facts.age)) {
       result.matchingFacts
     }
   }

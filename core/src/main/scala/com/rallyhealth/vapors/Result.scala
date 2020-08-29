@@ -6,6 +6,9 @@ sealed trait Result[+I] {
 
   def matchingFacts: List[Fact[I]]
 
+  @inline final def isEmpty: Boolean = matchingFacts.isEmpty
+  @inline final def nonEmpty: Boolean = matchingFacts.nonEmpty
+
   final def filter(p: Fact[I] => Boolean): Result[I] = {
     this match {
       case NoFactsMatch =>

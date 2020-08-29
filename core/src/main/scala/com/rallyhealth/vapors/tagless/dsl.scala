@@ -40,21 +40,17 @@ object dsl {
     }
   }
 
-  final case class And[O](expressions: Seq[ExpDsl[O]]) extends ExpDsl[O] {
-    override def apply[F[_] : ExpAlg]: F[O] = {
-//      ExpAlg[F].and(expressions.map(d => d.apply[F]))
-      ???
-    }
-  }
+//  final case class And[I](expressions: Seq[ExpDsl[I]]) extends ExpDsl[Result[I]] {
+//    override def apply[F[_] : ExpAlg]: F[Result[I]] = {
+//      ExpAlg[F].and(expressions.toList)
+//    }
+//  }
 
   def hasAnyOf[I, V](values: Set[V]): ExpDsl[Result[V]] = HasAnyOf(values)
 
   def has[V](value: V): ExpDsl[Result[V]] = HasAnyOf(Set(value))
 
-  def and[V](exp: ExpDsl[V]*): ExpDsl[Result[V]] = {
-//    ExpAnd(exp.map(_.apply[V]))
-    ???
-  }
+//  def and[V](subExpressions: ExpDsl[V]*): ExpDsl[Result[V]] = And(subExpressions.toList)
 
   implicit object ApplicativeDsl extends Applicative[ExpDsl] {
 

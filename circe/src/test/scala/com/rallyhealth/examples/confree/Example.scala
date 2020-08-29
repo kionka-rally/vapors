@@ -21,7 +21,7 @@ object Example {
 
     val serverConfigDecode = json.genDecode(serverConfig)
     val serverConfigHelp = help.genHelp(serverConfig)
-    println("HELP: " + serverConfigHelp)
+    println("HELP:\n" + serverConfigHelp)
 
     val serverConfigJson = json"""
       {

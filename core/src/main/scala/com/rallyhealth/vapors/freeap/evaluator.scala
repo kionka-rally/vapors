@@ -1,7 +1,7 @@
 package com.rallyhealth.vapors.freeap
 
 import cats.data.NonEmptyList
-import com.rallyhealth.vapors.{Fact, FactsMatch, NoFactsMatch, Result}
+import com.rallyhealth.vapors.data.{Fact, FactsMatch, NoFactsMatch, Result}
 
 object evaluator {
 

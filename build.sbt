@@ -4,7 +4,9 @@ ThisBuild / organization := "com.rallyhealth"
 ThisBuild / scalaVersion := Dependencies.Scala_2_11
 
 ThisBuild / scalacOptions ++= Seq(
+  "-feature",
   "-language:higherKinds",
+  "-language:implicitConversions",
   "-Xfatal-warnings",
 )
 

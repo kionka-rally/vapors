@@ -1,7 +1,7 @@
 package com.rallyhealth.vapors.tagless.algebra
 
 import cats.Applicative
-import com.rallyhealth.vapors.{Data, Result}
+import com.rallyhealth.vapors.data.{Data, Result}
 
 import scala.reflect.runtime.{universe => ru}
 

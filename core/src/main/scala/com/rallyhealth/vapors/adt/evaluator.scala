@@ -1,33 +1,47 @@
 package com.rallyhealth.vapors.adt
 
 import cats.data.NonEmptyList
-import com.rallyhealth.vapors.{Fact, FactsMatch, NoFactsMatch, Result}
+import com.rallyhealth.vapors.data.{Fact, FactsMatch, NoFactsMatch, Result}
 
 object evaluator {
 
   import algebra._
   import com.rallyhealth.collections.ops._
 
-  def evaluate[X](allFacts: List[Fact[X]])(root: ExpAlg[X]): Result[X] = {
+  def evaluate[X](allFacts: List[Fact[X]])(root: AlgExp[X]): Result[X] = {
 
     def eval[Y](
       facts: NonEmptyList[Fact[Y]],
-      exp: ExpAlg[Y]
+      exp: AlgExp[Y]
     ): Result[Y] = {
       exp match {
-        case x: ExpTyped[Y, _] =>
+
+        case WithNameExp(names, subExp) =>
           NonEmptyList
-            .fromList(x.filter(facts))
+            .fromList(facts.filter(names contains _.name))
             .map { subFacts =>
-              eval(subFacts, x.subExp)
+              eval(subFacts, subExp)
             }
             .getOrElse(NoFactsMatch)
-        case ExpHas(datum) => Result.fromList(facts.filter(_ == datum))
-        case ExpHasAny(dataset) =>
+
+        case x: WithTypeExp[Y, _] =>
+          NonEmptyList
+            .fromList(facts.collect(Function.unlift(x.cast)))
+            .map { subFacts =>
+              eval[x.Sub](subFacts, x.subExp)
+            }
+            .getOrElse(NoFactsMatch)
+
+        case HasExp(datum) =>
+          Result.fromList(facts.filter(_ == datum))
+
+        case HasAnyExp(dataset) =>
           Result.fromList(facts.find(dataset).toList)
-        case ExpFilter(fn) =>
-          Result.fromList(facts.filter(fn))
-        case ExpAnd(expressions) =>
+
+        case WithinWindowExp(range) =>
+          Result.fromList(facts.filter(f => range.contains(f.value)))
+
+        case AndExp(expressions) =>
           type FoldState = (Result[Y], Set[Fact[Y]])
           val (result, accumulatedMatchingFacts) = expressions
             .foldWith[FoldState]((FactsMatch(facts), Set()))
@@ -44,7 +58,8 @@ object evaluator {
           } else {
             Result.fromList(accumulatedMatchingFacts.toList)
           }
-        case ExpOr(expressions) =>
+
+        case OrExp(expressions) =>
           expressions
             .foldWith[Result[Y]](NoFactsMatch)
             // stop after the first non-empty result

@@ -2,7 +2,7 @@ package com.rallyhealth.vapors.freeap
 
 import cats.free.FreeApplicative
 import cats.implicits._
-import com.rallyhealth.vapors.Data
+import com.rallyhealth.vapors.data.Data
 
 // TODO: Is FreeApplicative worth it?
 object dsl {

@@ -1,4 +1,4 @@
-package com.rallyhealth.vapors
+package com.rallyhealth.vapors.data
 
 import cats.data.NonEmptyList
 
@@ -9,6 +9,7 @@ sealed trait Result[+I] {
   @inline final def isEmpty: Boolean = matchingFacts.isEmpty
   @inline final def nonEmpty: Boolean = matchingFacts.nonEmpty
 
+  // TODO: Is this needed? Will this make things more complicated later when we need to propagate information?
   final def filter(p: Fact[I] => Boolean): Result[I] = {
     this match {
       case NoFactsMatch =>
@@ -17,22 +18,6 @@ sealed trait Result[+I] {
         Result.fromList(matchingFacts.filter(p))
     }
   }
-
-//  final def withFacts[J](fn: NonEmptyList[Fact[I]] => List[Fact[J]]): Result[J] = this match {
-//    case FactsMatch(matchingFacts) =>
-//      fn(matchingFacts)
-//    case NoFactsMatch =>
-//      NoFactsMatch
-//  }
-//
-//  final def flatMap[J](fn: List[Fact[I]] => Result[J]): Result[J] = this match {
-//    case FactsMatch(matchingFacts) =>
-//      NonEmptyList.fromList(matchingFacts.toList.flatMap { d =>
-//        fn(d.value).matchingFacts
-//      }).map(FactsMatch(_)).getOrElse(NoFactsMatch)
-//    case NoFactsMatch =>
-//      NoFactsMatch
-//  }
 }
 
 object Result {

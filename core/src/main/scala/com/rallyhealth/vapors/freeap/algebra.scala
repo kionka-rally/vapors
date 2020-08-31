@@ -1,7 +1,7 @@
 package com.rallyhealth.vapors.freeap
 
 import cats.data.NonEmptyList
-import com.rallyhealth.vapors.{Data, Fact}
+import com.rallyhealth.vapors.data.{Data, Fact}
 
 import scala.reflect.ClassTag
 

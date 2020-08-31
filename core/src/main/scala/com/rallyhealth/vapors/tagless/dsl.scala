@@ -1,7 +1,7 @@
 package com.rallyhealth.vapors.tagless
 
 import cats.Applicative
-import com.rallyhealth.vapors.{Result, Value}
+import com.rallyhealth.vapors.data.{Result, Value}
 
 import scala.reflect.runtime.{universe => ru}
 

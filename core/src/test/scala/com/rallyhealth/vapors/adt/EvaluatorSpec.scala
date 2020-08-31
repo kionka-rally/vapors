@@ -1,7 +1,7 @@
 package com.rallyhealth.vapors.adt
 
 import com.rallyhealth.vapors.adt.algebra.AlgExp
-import com.rallyhealth.vapors.data.Fact
+import com.rallyhealth.vapors.data.{Fact, FactType}
 import org.scalatest.freespec.AnyFreeSpec
 
 class EvaluatorSpec extends AnyFreeSpec {
@@ -12,11 +12,18 @@ class EvaluatorSpec extends AnyFreeSpec {
 
   private final case class Probs(scores: Map[String, Double])
 
+  private final object FactTypes {
+    val name = FactType[String]("name")
+    val age = FactType[Int]("age")
+    val weight = FactType[Int]("weight")
+    val probs = FactType[Probs]("probability_to_use")
+  }
+
   private final object Facts {
-    val name = Fact("name", "Joe Schmoe")
-    val age = Fact("age", 32)
-    val weight = Fact("weight", 150)
-    val probs = Fact("probs", Probs(Map("weightloss" -> .8)))
+    val name = Fact(FactTypes.name, "Joe Schmoe")
+    val age = Fact(FactTypes.age, 32)
+    val weight = Fact(FactTypes.weight, 150)
+    val probs = Fact(FactTypes.probs, Probs(Map("weightloss" -> .8)))
 
     val all = List(
       name,
@@ -29,12 +36,12 @@ class EvaluatorSpec extends AnyFreeSpec {
   s"$it should filter facts with a certain name" in {
     val exp: AlgExp[Any] = {
       withType[Int] {
-        withFactsNamed(Facts.age.name) {
+        withFactsNamed(FactTypes.age.name) {
           withinRange(20 to 40)
         }
       }
     }
-    val result = evaluate(Facts.all)(exp)
+    val result = evaluate(Facts.all, exp)
     assertResult(List(Facts.age)) {
       result.matchingFacts
     }
@@ -47,7 +54,7 @@ class EvaluatorSpec extends AnyFreeSpec {
         has(Facts.probs)
       )
     }
-    val result = evaluate(Facts.all)(exp)
+    val result = evaluate(Facts.all, exp)
     assertResult(List(Facts.age, Facts.probs)) {
       result.matchingFacts
     }
@@ -62,7 +69,7 @@ class EvaluatorSpec extends AnyFreeSpec {
         has(Facts.weight)
       )
     }
-    val result = evaluate(Facts.all)(exp)
+    val result = evaluate(Facts.all, exp)
     assertResult(List(Facts.weight)) {
       result.matchingFacts
     }
@@ -70,9 +77,9 @@ class EvaluatorSpec extends AnyFreeSpec {
 
   s"$it should filter to only facts with the specified type of value" in {
     val exp: AlgExp[Any] = withType[Probs] {
-      hasValue(Facts.probs.value)
+      has(Facts.probs)
     }
-    val result = evaluate(Facts.all)(exp)
+    val result = evaluate(Facts.all, exp)
     assertResult(List(Facts.probs)) {
       result.matchingFacts
     }

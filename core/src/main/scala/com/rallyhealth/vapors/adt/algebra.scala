@@ -1,17 +1,16 @@
 package com.rallyhealth.vapors.adt
 
-import com.rallyhealth.vapors.data.{Data, Fact, Window}
+import com.rallyhealth.vapors.data.{Data, Fact, FactType, Window}
 
 import scala.reflect.ClassTag
 
 object algebra {
 
-  sealed trait AlgExp[A]
+  sealed trait AlgExp[-A]
 
-  final case class HasExp[A](value: Data[A]) extends AlgExp[A]
+  final case class HasAnyExp[A](factType: FactType[A], dataset: Set[Data[A]]) extends AlgExp[A]
 
-  final case class HasAnyExp[A](dataset: Set[Data[A]]) extends AlgExp[A]
-
+  // TODO: Replace with WithFactTypes
   final case class WithNameExp[A](names: Set[String], exp: AlgExp[A]) extends AlgExp[A]
 
   final case class WithTypeExp[A, X <: A](exp: AlgExp[X])(implicit ct: ClassTag[X]) extends AlgExp[A] {

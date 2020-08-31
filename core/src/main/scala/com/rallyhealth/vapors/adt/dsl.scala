@@ -1,6 +1,6 @@
 package com.rallyhealth.vapors.adt
 
-import com.rallyhealth.vapors.data.{Data, Value, Window}
+import com.rallyhealth.vapors.data.{Data, Fact, FactType, Value, Window}
 
 import scala.collection.immutable.NumericRange
 import scala.reflect.ClassTag
@@ -8,13 +8,14 @@ import scala.reflect.ClassTag
 object dsl {
   import algebra._
 
-  def has[A](data: Data[A]): AlgExp[A] = HasAnyExp(Set(data))
+  def has[A](fact: Fact[A]): AlgExp[A] = HasAnyExp(fact.typeInfo, Set(fact))
 
-  def hasValue[A](value: A): AlgExp[A] = HasAnyExp(Set(Value(value)))
+  // TODO: Is it worth pulling these out into a separate ADT so we can pin the fact types?
+  def hasValue[A](factType: FactType[A], value: A): AlgExp[A] = HasAnyExp(factType, Set(Value(value)))
 
-  def hasAny[A](values: Set[Data[A]]): AlgExp[A] = HasAnyExp(values)
+  def hasAny[A](factType: FactType[A], values: Set[Data[A]]): AlgExp[A] = HasAnyExp(factType, values)
 
-  def hasAnyValue[A](values: Set[A]): AlgExp[A] = HasAnyExp(values.map(Value(_)))
+  def hasAnyValue[A](factType: FactType[A], values: Set[A]): AlgExp[A] = HasAnyExp(factType, values.map(Value(_)))
 
   def withinRange(range: Range): AlgExp[Int] = WithinWindowExp(Window.fromRange(range))
 

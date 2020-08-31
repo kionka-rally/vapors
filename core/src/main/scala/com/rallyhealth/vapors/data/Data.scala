@@ -1,26 +1,32 @@
 package com.rallyhealth.vapors.data
 
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 
 /**
   * Magnet type for [[Fact]]s and lifted values.
   */
-sealed trait Data[+V] extends Any
+sealed trait Data[V] extends Any
 
-object Data {
-
-//  /**
-//    * Automatically lift values into data.
-//    *
-//    * TODO: Is this needed?
-//    */
-  // This is bad because it wraps ExpAny into a Value, which makes no sense
-//  implicit def pure[V](value: V): Value[V] = Value(value)
-}
-
-final case class Fact[+V](
-  name: String,
+final case class Fact[V](
+  typeInfo: FactType[V],
   value: V
 ) extends Data[V]
 
-final case class Value[+A](value: A) extends AnyVal with Data[A]
+final case class Value[A](value: A) extends AnyVal with Data[A]
+
+trait FactType[V] {
+  def name: String
+  def classTag: ClassTag[V]
+}
+
+object FactType {
+
+  def apply[V : ClassTag](name: String): FactType[V] = Simple(name)
+
+  private final case class Simple[V](
+    name: String
+  )(implicit
+    override val classTag: ClassTag[V]
+  ) extends FactType[V]
+}

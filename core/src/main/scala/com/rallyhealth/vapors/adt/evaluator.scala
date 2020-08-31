@@ -8,7 +8,7 @@ object evaluator {
   import algebra._
   import com.rallyhealth.collections.ops._
 
-  def evaluate[X](allFacts: List[Fact[X]])(root: AlgExp[X]): Result[X] = {
+  def evaluate[A](allFacts: List[Fact[A]], root: AlgExp[A]): Result[A] = {
 
     def eval[Y](
       facts: NonEmptyList[Fact[Y]],
@@ -18,7 +18,7 @@ object evaluator {
 
         case WithNameExp(names, subExp) =>
           NonEmptyList
-            .fromList(facts.filter(names contains _.name))
+            .fromList(facts.filter(names contains _.typeInfo.name))
             .map { subFacts =>
               eval(subFacts, subExp)
             }
@@ -36,7 +36,7 @@ object evaluator {
           Result.fromList(facts.filter(_ == datum))
 
         case HasAnyExp(dataset) =>
-          Result.fromList(facts.find(dataset).toList)
+          Result.fromList(facts.find(dataset.contains).toList)
 
         case WithinWindowExp(range) =>
           Result.fromList(facts.filter(f => range.contains(f.value)))

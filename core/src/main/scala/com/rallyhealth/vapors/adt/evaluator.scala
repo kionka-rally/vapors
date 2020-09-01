@@ -1,14 +1,17 @@
 package com.rallyhealth.vapors.adt
 
 import cats.data.NonEmptyList
-import com.rallyhealth.vapors.data.{Fact, FactsMatch, NoFactsMatch, Result}
+import com.rallyhealth.vapors.data._
 
 object evaluator {
 
   import algebra._
   import com.rallyhealth.collections.ops._
 
-  def evaluate[A](allFacts: List[Fact[A]], root: AlgExp[A]): Result[A] = {
+  def evaluate[A](
+    allFacts: List[Fact[A]],
+    root: AlgExp[A]
+  ): Result[A] = {
 
     def eval[Y](
       facts: NonEmptyList[Fact[Y]],
@@ -16,27 +19,27 @@ object evaluator {
     ): Result[Y] = {
       exp match {
 
-        case WithNameExp(names, subExp) =>
-          NonEmptyList
-            .fromList(facts.filter(names contains _.typeInfo.name))
-            .map { subFacts =>
-              eval(subFacts, subExp)
-            }
-            .getOrElse(NoFactsMatch)
-
-        case x: WithTypeExp[Y, _] =>
-          NonEmptyList
-            .fromList(facts.collect(Function.unlift(x.cast)))
-            .map { subFacts =>
-              eval[x.Sub](subFacts, x.subExp)
-            }
-            .getOrElse(NoFactsMatch)
-
-        case HasExp(datum) =>
-          Result.fromList(facts.filter(_ == datum))
+        // TODO: Put a better error message here
+        case FailedExp() => NoFactsMatch()
 
         case HasAnyExp(dataset) =>
-          Result.fromList(facts.find(dataset.contains).toList)
+          val valueSet = dataset.collect {
+            case Value(v) => v
+          }
+          Result.fromList(facts.filter { f =>
+            dataset.contains(f) || valueSet.contains(f.value)
+          })
+
+        case e: WithFactTypesExp[x, Y] =>
+          NonEmptyList
+            .fromList(facts.collect {
+              case e.factTypes.Match(f) => f
+            })
+            .map { subFacts =>
+              val res = eval(subFacts, e.subExp)
+              e.widen(res)
+            }
+            .getOrElse(NoFactsMatch())
 
         case WithinWindowExp(range) =>
           Result.fromList(facts.filter(f => range.contains(f.value)))
@@ -54,14 +57,14 @@ object evaluator {
                 (filtered, acc ++ filtered.matchingFacts)
             }
           if (result.matchingFacts.isEmpty) {
-            NoFactsMatch
+            NoFactsMatch()
           } else {
             Result.fromList(accumulatedMatchingFacts.toList)
           }
 
         case OrExp(expressions) =>
           expressions
-            .foldWith[Result[Y]](NoFactsMatch)
+            .foldWith[Result[Y]](NoFactsMatch())
             // stop after the first non-empty result
             .breakAfterState(_.nonEmpty) {
               case (_, nextExp) =>
@@ -75,7 +78,7 @@ object evaluator {
       .map { allFactsNel =>
         eval(allFactsNel, root)
       }
-      .getOrElse(NoFactsMatch)
+      .getOrElse(NoFactsMatch())
   }
 
 }

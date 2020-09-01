@@ -1,6 +1,6 @@
 package com.rallyhealth.vapors.adt
 
-import com.rallyhealth.vapors.data.{Data, Fact, FactType, Value, Window}
+import com.rallyhealth.vapors.data._
 
 import scala.collection.immutable.NumericRange
 import scala.reflect.ClassTag
@@ -8,14 +8,15 @@ import scala.reflect.ClassTag
 object dsl {
   import algebra._
 
-  def has[A](fact: Fact[A]): AlgExp[A] = HasAnyExp(fact.typeInfo, Set(fact))
+  def has[A <: B, B : ClassTag](fact: Fact[A]): AlgExp[B] = {
+    WithFactTypesExp[A, B](FactTypeSet.fromSingle(fact.typeInfo), HasAnyExp(Set(fact)))
+  }
 
-  // TODO: Is it worth pulling these out into a separate ADT so we can pin the fact types?
-  def hasValue[A](factType: FactType[A], value: A): AlgExp[A] = HasAnyExp(factType, Set(Value(value)))
+  def hasValue[A](value: A): AlgExp[A] = HasAnyExp(Set(Value(value)))
 
-  def hasAny[A](factType: FactType[A], values: Set[Data[A]]): AlgExp[A] = HasAnyExp(factType, values)
+  def hasAny[A](values: Set[Data[A]]): AlgExp[A] = HasAnyExp(values)
 
-  def hasAnyValue[A](factType: FactType[A], values: Set[A]): AlgExp[A] = HasAnyExp(factType, values.map(Value(_)))
+  def hasAnyValue[A](values: Set[A]): AlgExp[A] = HasAnyExp(values.map(Value(_)))
 
   def withinRange(range: Range): AlgExp[Int] = WithinWindowExp(Window.fromRange(range))
 
@@ -23,15 +24,13 @@ object dsl {
 
   def withinWindow[A](window: Window[A]): AlgExp[A] = WithinWindowExp(window)
 
-  // TODO: Replace all of these with name / with type using FactType[V]
-  def withFactsNamed[A](name: String)(exp: AlgExp[A]): AlgExp[A] = WithNameExp(Set(name), exp)
-
-  def withFactsNamed[A](names: Set[String])(exp: AlgExp[A]): AlgExp[A] = WithNameExp(names, exp)
-
-  def withType[B]: WithType[B] = new WithType[B]
-
-  final class WithType[B] private[dsl] {
-    def apply[A >: B](exp: AlgExp[B])(implicit ct: ClassTag[B]): AlgExp[A] = WithTypeExp(exp)
+  def withFactType[A <: B, B : ClassTag](factTypes: FactType[A]*)(subExp: AlgExp[A]): AlgExp[B] = {
+    FactTypeSet
+      .fromList(factTypes.toList)
+      .map { factTypeSet =>
+        WithFactTypesExp[A, B](factTypeSet, subExp)
+      }
+      .getOrElse(FailedExp())
   }
 
   def and[A](expressions: AlgExp[A]*): AlgExp[A] = AndExp.fromVector(expressions.toVector)
@@ -43,19 +42,19 @@ object dsl {
 //
 //    def widen[B >: A](implicit canWiden: CanWiden[Alg, A, B]): Alg[B] = canWiden.widen(op)
 
-    //    def &&[AlgB[x] <: ExpAlg[x], B >: A](andThen: AlgB[B])(implicit canWiden: CanWiden[Alg, A, B]): ExpAnd[B] = {
-    //      op.widen[B] match {
-    //        case self: ExpAnd[B] => ExpAnd(self.expressions :+ andThen)
-    //        case self => ExpAnd(Vector[ExpAlg[B]](self, andThen))
-    //      }
-    //    }
+  //    def &&[AlgB[x] <: ExpAlg[x], B >: A](andThen: AlgB[B])(implicit canWiden: CanWiden[Alg, A, B]): ExpAnd[B] = {
+  //      op.widen[B] match {
+  //        case self: ExpAnd[B] => ExpAnd(self.expressions :+ andThen)
+  //        case self => ExpAnd(Vector[ExpAlg[B]](self, andThen))
+  //      }
+  //    }
 
-    //    def ||[AlgB[x] <: ExpAlg[x], B <: A](orElse: AlgB[B])(implicit canWiden: CanWiden[AlgB, B, A]): ExpOr[B] = {
-    //      op match {
-    //        case self: ExpOr[A] => ExpOr.fromVector(self.expressions :+ orElse)
-    //        case _ => ExpOr(op, orElse.widen[A])
-    //      }
-    //    }
+  //    def ||[AlgB[x] <: ExpAlg[x], B <: A](orElse: AlgB[B])(implicit canWiden: CanWiden[AlgB, B, A]): ExpOr[B] = {
+  //      op match {
+  //        case self: ExpOr[A] => ExpOr.fromVector(self.expressions :+ orElse)
+  //        case _ => ExpOr(op, orElse.widen[A])
+  //      }
+  //    }
 //  }
 
 //  implicit class ExpOps[A](val op: ExpAlg[A]) extends AnyVal {

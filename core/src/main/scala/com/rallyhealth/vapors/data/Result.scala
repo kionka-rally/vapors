@@ -2,18 +2,25 @@ package com.rallyhealth.vapors.data
 
 import cats.data.NonEmptyList
 
-sealed trait Result[+I] {
+sealed trait Result[I] {
 
   def matchingFacts: List[Fact[I]]
 
+  // TODO: Are the following methods be needed?
+  // Or will they just make things more complicated later when needing to propagate info?
+
   @inline final def isEmpty: Boolean = matchingFacts.isEmpty
+
   @inline final def nonEmpty: Boolean = matchingFacts.nonEmpty
 
-  // TODO: Is this needed? Will this make things more complicated later when we need to propagate information?
+  final def collect[X](pf: PartialFunction[Fact[I], Fact[X]]): Result[X] = {
+    Result.fromList(matchingFacts.collect(pf))
+  }
+
   final def filter(p: Fact[I] => Boolean): Result[I] = {
     this match {
-      case NoFactsMatch =>
-        NoFactsMatch
+      case NoFactsMatch() =>
+        NoFactsMatch()
       case FactsMatch(matchingFacts) =>
         Result.fromList(matchingFacts.filter(p))
     }
@@ -26,14 +33,14 @@ object Result {
 
   def fromList[I](facts: List[Fact[I]]): Result[I] = NonEmptyList.fromList(facts) match {
     case Some(nonEmptyList) => FactsMatch(nonEmptyList)
-    case None => NoFactsMatch
+    case None => NoFactsMatch()
   }
 }
 
-final case class FactsMatch[+I](matchingFactsNel: NonEmptyList[Fact[I]]) extends Result[I] {
+final case class FactsMatch[I](matchingFactsNel: NonEmptyList[Fact[I]]) extends Result[I] {
   override def matchingFacts: List[Fact[I]] = matchingFactsNel.toList
 }
 
-case object NoFactsMatch extends Result[Nothing] {
-  override def matchingFacts: List[Fact[Nothing]] = Nil
+final case class NoFactsMatch[I]() extends Result[I] {
+  override def matchingFacts: List[Fact[I]] = Nil
 }

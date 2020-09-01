@@ -27,7 +27,7 @@ object algebra {
   }
 
   // TODO: This is too powerful and unserializable. We should use an ExpAlg instead of a function.
-  case class ExpFilter[-A](predicate: Fact[A] => Boolean) extends ExpAlg[A]
+//  case class ExpFilter[-A](predicate: Fact[A] => Boolean) extends ExpAlg[A]
 
   case class ExpAnd[-A](expressions: List[ExpAlg[A]]) extends ExpAlg[A]
 

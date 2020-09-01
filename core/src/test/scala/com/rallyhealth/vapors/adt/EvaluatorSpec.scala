@@ -34,11 +34,9 @@ class EvaluatorSpec extends AnyFreeSpec {
   }
 
   s"$it should filter facts with a certain name" in {
-    val exp: AlgExp[Any] = {
-      withType[Int] {
-        withFactsNamed(FactTypes.age.name) {
-          withinRange(20 to 40)
-        }
+    val exp = {
+      withFactType(FactTypes.age) {
+        withinRange(20 to 40)
       }
     }
     val result = evaluate(Facts.all, exp)
@@ -48,9 +46,11 @@ class EvaluatorSpec extends AnyFreeSpec {
   }
 
   s"$it should combine matching facts using the && operator" in {
-    val exp: AlgExp[Any] = {
+    val exp = {
       and(
-        withType[Int](withinRange(20 to 30)),
+        withFactType(FactTypes.age) {
+          withinRange(20 to 30)
+        },
         has(Facts.probs)
       )
     }
@@ -61,9 +61,9 @@ class EvaluatorSpec extends AnyFreeSpec {
   }
 
   s"$it should filter to the first matching set of facts using the || operator" in {
-    val exp: AlgExp[Any] = {
+    val exp = {
       or(
-        withType[Int] {
+        withFactType(FactTypes.age) {
           withinRange(70 to 100)
         },
         has(Facts.weight)
@@ -76,7 +76,10 @@ class EvaluatorSpec extends AnyFreeSpec {
   }
 
   s"$it should filter to only facts with the specified type of value" in {
-    val exp: AlgExp[Any] = withType[Probs] {
+//    val exp: AlgExp[Any] = withFactType(FactTypes.probs) {
+//      has(Facts.probs)
+//    }
+    val exp = withFactType(FactTypes.probs) {
       has(Facts.probs)
     }
     val result = evaluate(Facts.all, exp)

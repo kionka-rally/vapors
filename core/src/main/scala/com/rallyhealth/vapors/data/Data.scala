@@ -1,6 +1,6 @@
 package com.rallyhealth.vapors.data
 
-import cats.{Functor, Invariant}
+import cats.Functor
 
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -34,6 +34,15 @@ final case class FactTypeSet[A] private (types: Map[String, FactType[A]]) {
     case _ => None
   }
 
+  def subset[B](implicit tb: TypeTag[B]): Option[FactTypeSet[B]] = {
+    val matchingFactTypes = types.toList.collect {
+      case (_, factType) if factType.tt.tpe =:= tb.tpe =>
+        // Justification: This checks equality of the FactType at runtime after safely casting the value
+        factType.asInstanceOf[FactType[B]]
+    }
+    FactTypeSet.fromList(matchingFactTypes)
+  }
+
   final object Match {
 
     def apply(fact: Fact[_]): Option[Fact[A]] = {
@@ -45,6 +54,8 @@ final case class FactTypeSet[A] private (types: Map[String, FactType[A]]) {
 }
 
 object FactTypeSet {
+
+  def empty[A]: FactTypeSet[A] = new FactTypeSet(Map())
 
 //  sealed trait TaggedFactType[A] {
 //    def tpe: FactType[A]
@@ -89,8 +100,8 @@ trait FactType[V] {
 
   final lazy val fullName: String = s"$name: ${tt.tpe}"
 
-  protected implicit val ct: ClassTag[V]
-  protected implicit val tt: TypeTag[V]
+  protected[vapors] implicit val ct: ClassTag[V]
+  protected[vapors] implicit val tt: TypeTag[V]
 
   /**
     * Safely cast the given fact to this type.
@@ -122,7 +133,7 @@ object FactType {
   private final case class Simple[V](
     name: String
   )(implicit
-    override protected val ct: ClassTag[V],
-    override protected val tt: TypeTag[V]
+    override val ct: ClassTag[V],
+    override val tt: TypeTag[V]
   ) extends FactType[V]
 }

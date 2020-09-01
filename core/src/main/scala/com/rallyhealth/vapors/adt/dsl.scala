@@ -24,7 +24,7 @@ object dsl {
 
   def withinWindow[A](window: Window[A]): AlgExp[A] = WithinWindowExp(window)
 
-  def withFactType[A <: B, B : ClassTag](factTypes: FactType[A]*)(subExp: AlgExp[A]): AlgExp[B] = {
+  def withFactType[A, B : ClassTag](factTypes: FactType[A]*)(subExp: AlgExp[A]): AlgExp[B] = {
     FactTypeSet
       .fromList(factTypes.toList)
       .map { factTypeSet =>

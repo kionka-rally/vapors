@@ -66,7 +66,7 @@ class EvaluatorSpec extends AnyFreeSpec {
         withFactType(FactTypes.age) {
           withinRange(70 to 100)
         },
-        has(Facts.weight)
+        has(Facts.probs)
       )
     }
     val result = evaluate(Facts.all, exp)

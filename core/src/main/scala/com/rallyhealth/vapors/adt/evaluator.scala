@@ -3,15 +3,18 @@ package com.rallyhealth.vapors.adt
 import cats.data.NonEmptyList
 import com.rallyhealth.vapors.data._
 
+import scala.reflect.ClassTag
+import scala.reflect.runtime.universe.TypeTag
+
 object evaluator {
 
   import algebra._
   import com.rallyhealth.collections.ops._
 
-  def evaluate[A](
+  def evaluate[A, B : ClassTag : TypeTag](
     allFacts: List[Fact[A]],
-    root: AlgExp[A]
-  ): Result[A] = {
+    root: AlgExp[B]
+  ): Result[B] = {
 
     def eval[Y](
       facts: NonEmptyList[Fact[Y]],
@@ -30,7 +33,7 @@ object evaluator {
             dataset.contains(f) || valueSet.contains(f.value)
           })
 
-        case e: WithFactTypesExp[x, Y] =>
+        case e: WithFactTypesExp[_, Y] =>
           NonEmptyList
             .fromList(facts.collect {
               case e.factTypes.Match(f) => f
@@ -73,12 +76,17 @@ object evaluator {
       }
     }
 
-    NonEmptyList
-      .fromList(allFacts)
-      .map { allFactsNel =>
-        eval(allFactsNel, root)
-      }
-      .getOrElse(NoFactsMatch())
+    val validResult = for {
+      allTypeSet <- FactTypeSet.fromList(allFacts.map(_.typeInfo))
+      validTypeSet = allTypeSet.subset[B].getOrElse(FactTypeSet.empty[B])
+      typedExp = WithFactTypesExp[B, B](validTypeSet, root)
+      validFacts <- NonEmptyList.fromList(allFacts.collect {
+        case validTypeSet.Match(f) => f
+      })
+    } yield {
+      eval(validFacts, typedExp)
+    }
+    validResult.getOrElse(NoFactsMatch())
   }
 
 }

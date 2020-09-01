@@ -12,7 +12,7 @@ object algebra {
 
   final case class HasAnyExp[A](dataset: Set[Data[A]]) extends AlgExp[A]
 
-  final case class WithFactTypesExp[A <: B, B : ClassTag](
+  final case class WithFactTypesExp[A, B : ClassTag](
     factTypes: FactTypeSet[A],
     subExp: AlgExp[A]
   ) extends AlgExp[B] {

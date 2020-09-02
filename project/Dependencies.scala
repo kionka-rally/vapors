@@ -2,13 +2,13 @@ import sbt._
 
 object Dependencies {
 
-  final val Scala_2_11 = "2.11.12"
+  final val Scala_2_13 = "2.13.3"
 
-  private final val catsVersion = "2.0.0"
-  private final val circeVersion = "0.11.1"
+  private final val catsVersion = "2.1.1"
+  private final val circeVersion = "0.13.0"
   private final val kindProjectorVersion = "0.11.0"
-  private final val scalaCheckVersion = "1.14.1"
-  private final val scalaTestVersion = "3.2.0"
+  private final val scalaCheckVersion = "1.14.3"
+  private final val scalaTestVersion = "3.2.2"
   private final val scalaTestPlusScalaCheckVersion = "3.2.1.0"
 
   val catsCore = "org.typelevel" %% "cats-core" % catsVersion

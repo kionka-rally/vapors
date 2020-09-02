@@ -34,7 +34,7 @@ object dsl {
     }
   }
 
-  final case class HasType[I](implicit val tt: ru.TypeTag[I]) extends ExpDsl[Result[I]] {
+  final case class HasType[I]()(implicit val tt: ru.TypeTag[I]) extends ExpDsl[Result[I]] {
     override def apply[F[_] : ExpAlg]: F[Result[I]] = {
       ExpAlg[F].hasTypeOf[I]
     }

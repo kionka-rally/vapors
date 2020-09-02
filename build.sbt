@@ -1,7 +1,7 @@
 name := "vapors-root"
 ThisBuild / organization := "com.rallyhealth"
 
-ThisBuild / scalaVersion := Dependencies.Scala_2_11
+ThisBuild / scalaVersion := Dependencies.Scala_2_13
 
 ThisBuild / scalacOptions ++= Seq(
   "-language:higherKinds",
@@ -18,7 +18,7 @@ lazy val core = (project in file("core")).settings(
     // Test-only dependencies
     Dependencies.scalaCheck,
     Dependencies.scalaTest,
-    Dependencies.scalaTestPlusScalaCheck,
+    // Dependencies.scalaTestPlusScalaCheck,
   ).map(_ % Test)
 )
 
@@ -34,6 +34,6 @@ lazy val circe = (project in file("circe"))
       Dependencies.circeParser,
       Dependencies.scalaCheck,
       Dependencies.scalaTest,
-      Dependencies.scalaTestPlusScalaCheck,
+      // Dependencies.scalaTestPlusScalaCheck,
     ).map(_ % Test)
   )

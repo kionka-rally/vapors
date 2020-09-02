@@ -22,12 +22,16 @@ class EvaluatorSpec extends AnyFreeSpec {
     )
   }
 
+  // set of inferences
+  class BigData
+  object BigData
+
   def v[A](head: A, tail: A*): NonEmptyVector[A] = NonEmptyVector.of(head, tail: _*)
-  val True: Any => Boolean = _ => true
-  val False: Any => Boolean = _ => false
+  val True: BigData => Boolean = _ => true
+  val False: BigData => Boolean = _ => false
 
   s"$it should return true for one true in an or" in {
-    val program: ExpDsl[Boolean] = or(v(has(True)))
+    val program: ExpDsl[BigData, Boolean] = or(v(has(True)))
     val result = eval(program)(new BigData)
     assert(result)
   }

@@ -8,7 +8,7 @@ object FreeApExample {
   sealed abstract class ValidationOp[A]
   case class Size(size: Int) extends ValidationOp[Boolean]
   case object HasNumber extends ValidationOp[Boolean]
-  case object HasString extends ValidationOp[String]
+  // case object HasString extends ValidationOp[String]
 
   type Validation[A] = FreeApplicative[ValidationOp, A]
 
@@ -23,7 +23,7 @@ object FreeApExample {
       fa match {
         case Size(size) => (str.size >= size)
         case HasNumber  => str.exists(c => "0123456789".contains(c))
-        case HasString => str
+        // case HasString => str
       }
   }
 

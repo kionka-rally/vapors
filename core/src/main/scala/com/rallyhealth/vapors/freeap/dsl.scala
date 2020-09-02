@@ -6,15 +6,25 @@ import cats.free.FreeApplicative
 object dsl {
   import algebra._
 
-  type ExpDsl[A] = FreeApplicative[ExpAlg, A]
+  type ExpDsl[T, A] = FreeApplicative[ExpAlg[T, *], A]
 
-  private def lift[A](value: ExpAlg[A]): ExpDsl[A] = FreeApplicative.lift(value)
+  private def lift[T, A](value: ExpAlg[T, A]): ExpDsl[T, A] = FreeApplicative.lift(value)
 
-  def has(predicate: BigData => Boolean): ExpDsl[Boolean] = lift(ExpHas(predicate))
+  def has[T](predicate: T => Boolean): ExpDsl[T, Boolean] = lift(ExpHas(predicate))
 
-  def and(expressions: NonEmptyVector[ExpDsl[Boolean]]): ExpDsl[Boolean] =
-    lift(ExpAnd[Boolean](_.foldLeft(true)(_ && _), expressions))
+  def and[T](expressions: NonEmptyVector[ExpDsl[T, Boolean]]): ExpDsl[T, Boolean] =
+    lift(
+      ExpAnd[T, Boolean](
+        _.foldLeft(true)(_ && _),
+        expressions
+      )
+    )
 
-  def or(expressions: NonEmptyVector[ExpDsl[Boolean]]): ExpDsl[Boolean] =
-    lift(ExpOr[Boolean](_.foldLeft(false)(_ || _), expressions))
+  def or[T](expressions: NonEmptyVector[ExpDsl[T, Boolean]]): ExpDsl[T, Boolean] =
+    lift(
+      ExpOr[T, Boolean](
+        _.foldLeft(false)(_ || _),
+        expressions
+      )
+    )
 }

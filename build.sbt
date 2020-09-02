@@ -8,9 +8,12 @@ ThisBuild / scalacOptions ++= Seq(
   "-Xfatal-warnings",
 )
 
+addCompilerPlugin(Dependencies.Plugins.kindProjector.cross(CrossVersion.full))
+
 lazy val core = (project in file("core")).settings(
-//  addCompilerPlugin(Dependencies.Plugins.kindProjector.cross(CrossVersion.full)),
+  // addCompilerPlugin(Dependencies.Plugins.kindProjector.cross(CrossVersion.full)),
   libraryDependencies := Seq(
+    compilerPlugin(Dependencies.Plugins.kindProjector.cross(CrossVersion.full)),
     Dependencies.catsCore,
     Dependencies.catsFree,
     Dependencies.scalaReflect(scalaVersion.value),
@@ -25,7 +28,7 @@ lazy val core = (project in file("core")).settings(
 lazy val circe = (project in file("circe"))
   .dependsOn(core)
   .settings(
-//    addCompilerPlugin(Dependencies.Plugins.kindProjector.cross(CrossVersion.full)),
+    // addCompilerPlugin(Dependencies.Plugins.kindProjector.cross(CrossVersion.full)),
     libraryDependencies := Seq(
       Dependencies.circeCore,
     ) ++ Seq(
